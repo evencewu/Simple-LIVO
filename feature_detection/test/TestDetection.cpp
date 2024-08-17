@@ -4,25 +4,24 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
 
-class ORBDetectorNode : public rclcpp::Node
+#include "feature_detection/feature_tracker.hpp"
+
+class TestDetectorNode : public rclcpp::Node
 {
 public:
-    ORBDetectorNode() : Node("orb_detector_node")
+    TestDetectorNode() : Node("test_detector_node")
     {
         // 创建一个订阅者，订阅图像话题
         subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
-            "/camera/camera/color/image_raw", 10, std::bind(&ORBDetectorNode::imageCallback, this, std::placeholders::_1));
+            "/camera/camera/color/image_raw", 10, std::bind(&TestDetectorNode::imageCallback, this, std::placeholders::_1));
 
-        publisher_ = this->create_publisher<sensor_msgs::msg::Image>("/orb_image", 10);
-
-        // 初始化 ORB 检测器
-        orb_ = cv::ORB::create();
+        publisher_ = this->create_publisher<sensor_msgs::msg::Image>("/test_image", 10);
     }
 
 private:
     void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg)
     {
-        
+
         // 将 ROS 图像消息转换为 OpenCV 图像
         cv_bridge::CvImagePtr cv_ptr;
         try
@@ -35,22 +34,17 @@ private:
             return;
         }
 
-        //更新图列表
+        vo.ReadNewFrame(cv_ptr->image);
+        cv::Mat outputImage = vo.GetVisualizationFrame();
 
+        /*
+        std::stringstream ss;
+        ss << "Transformation matrix: " << std::endl
+           << vo.GetTransformationMat().matrix() << std::endl;
+
+        RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+        */
         
-        //灰度图
-        cv::Mat img_gray;
-        cv::cvtColor(cv_ptr->image, img_gray, cv::COLOR_BGR2GRAY);
-
-        // 检测 ORB 关键点
-        
-        cv::Mat descriptors;
-        orb_->detectAndCompute(img_gray, cv::noArray(), keypoints_list[0], descriptors);
-
-        // 在图像上绘制关键点
-        cv::Mat outputImage;
-        cv::drawKeypoints(cv_ptr->image, keypoints_list[0], outputImage, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
-
         // 将 OpenCV 图像转换为 ROS2 图像消息
         std_msgs::msg::Header header;            // 创建一个消息头
         header.stamp = this->get_clock()->now(); // 设置时间戳
@@ -62,10 +56,12 @@ private:
         publisher_->publish(*output_msg);
     }
 
+    simple_livo::feature_tracker vo;
+
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_;
 
-    std::vector<std::vector<cv::KeyPoint>> keypoints_list = std::vector<std::vector<cv::KeyPoint>>(2);
+    std::vector<std::vector<cv::Point2f>> keypoints_list = std::vector<std::vector<cv::Point2f>>(2);
 
     cv::Ptr<cv::ORB> orb_;
 };
@@ -73,7 +69,7 @@ private:
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ORBDetectorNode>());
+    rclcpp::spin(std::make_shared<TestDetectorNode>());
     rclcpp::shutdown();
     return 0;
 }

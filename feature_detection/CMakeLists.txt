@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(attitude_prediction)
+project(feature_detection)
 
 # 找到依赖包
 set(THIS_PACKAGE_INCLUDE_DEPENDS
@@ -28,29 +28,19 @@ add_library(${PROJECT_NAME} SHARED ${MAIN_SOURCES})
 ament_target_dependencies(${PROJECT_NAME} PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # 编译测试用例
-add_executable(test_orb test/TestOrb.cpp ${MAIN_SOURCES})
+add_executable(test_detection test/TestDetection.cpp ${MAIN_SOURCES})
 
-ament_target_dependencies(test_orb
+ament_target_dependencies(test_detection
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
 install(TARGETS 
-  test_orb
+  test_detection
   DESTINATION lib/${PROJECT_NAME}
 )
 
 ############
 
-add_executable(test_vo test/TestVo.cpp ${MAIN_SOURCES})
-
-ament_target_dependencies(test_vo
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
-)
-
-install(TARGETS 
-test_vo
-  DESTINATION lib/${PROJECT_NAME}
-)
 
 ############
 
