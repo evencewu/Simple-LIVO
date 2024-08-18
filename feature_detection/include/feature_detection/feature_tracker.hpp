@@ -22,11 +22,14 @@ namespace simple_livo
         cv::Mat GetVisualizationFrame();
 
     private:
-        void FilterVector(std::vector<cv::Point2f> &v, std::vector<uchar> status);
+        void FilterVector(std::vector<cv::Point2f> &v, std::vector<uchar> &status);
         bool InBorder(const cv::Point2f &pt);
 
         // 关键点检测相关
+        std::vector<cv::Point2f> tracker_point; //跟踪点
+
         cv::Mat color_frame;
+
         cv::Mat frame, frame_last;
         std::vector<cv::Point2f> critical_point, critical_point_last,predict_point;
         std::vector<uchar> status;

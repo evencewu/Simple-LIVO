@@ -14,7 +14,7 @@ namespace simple_livo
         return border_size <= img_x && img_x < frame_col - border_size && border_size <= img_y && img_y < frame_row - border_size;
     }
 
-    void feature_tracker::FilterVector(std::vector<cv::Point2f> &v, std::vector<uchar> status)
+    void feature_tracker::FilterVector(std::vector<cv::Point2f> &v, std::vector<uchar> &status)
     {
         int j = 0;
         for (int i = 0; i < int(v.size()); i++)
@@ -27,33 +27,53 @@ namespace simple_livo
     {
         color_frame = _frame;
         cv::cvtColor(_frame, frame, cv::COLOR_BGR2GRAY);
+        
+        frame_col = _frame.cols;
+        frame_row = _frame.rows;
 
-        if (!frame_last.empty())
+        if (frame_last.empty())
         {
-            cv::calcOpticalFlowPyrLK(frame_last, frame, critical_point_last, predict_point, status, err, cv::Size(21, 21), 3);
+            cv::goodFeaturesToTrack(frame, tracker_point, 100, 0.01, 10); // 检测角点
+            critical_point = tracker_point;
         }
-
-        cv::goodFeaturesToTrack(frame, critical_point, 100, 0.01, 10); // 检测角点
-
-        if (use_visualization)
+        else
         {
-            visualization_img = _frame;
-
-            // 在图像上绘制圆点
-            for (const auto &point : critical_point_last)
+            if (critical_point_last.size() < 6)
             {
-                cv::circle(visualization_img, point, 7, cv::Scalar(0, 255, 0), -1);
+
             }
 
-            for (const auto &point : predict_point)
-            {
-                cv::circle(visualization_img, point, 3, cv::Scalar(0, 0, 255), -1);
-            }
+            cv::calcOpticalFlowPyrLK(frame_last, frame, critical_point_last, critical_point, status, err, cv::Size(21, 21), 3);
 
-            if (!predict_point.empty())
+            for (int i = 0; i < int(critical_point.size()); i++)
+                if (status[i] && !InBorder(critical_point[i]))
+                    status[i] = 0;
+
+            FilterVector(critical_point_last, status);
+            FilterVector(critical_point, status);
+
+            if (use_visualization)
             {
-                RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%f %f %f %f", predict_point[0].x, predict_point[0].y, critical_point_last[0].x, critical_point_last[0].y);
-                RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%ld %ld ", size(predict_point), size(critical_point_last));
+                visualization_img = _frame;
+
+                // 在图像上绘制圆点
+                for (const auto &point : critical_point_last)
+                {
+                    cv::circle(visualization_img, point, 7, cv::Scalar(0, 255, 0), -1);
+                }
+
+                for (const auto &point : critical_point)
+                {
+                    cv::circle(visualization_img, point, 3, cv::Scalar(0, 0, 255), -1);
+                }
+
+                //std::stringstream ss;
+
+                if (!critical_point.empty())
+                {
+                    //RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%d %d %d %d %d", status[0], status[1], status[2], status[3], status[4], status[5]);
+                    RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%ld %ld", size(critical_point), size(critical_point_last));
+                }
             }
         }
 

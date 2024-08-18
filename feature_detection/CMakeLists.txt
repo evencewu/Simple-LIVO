@@ -39,6 +39,19 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# 编译测试工具
+add_executable(save_img tool/SaveImg.cpp ${MAIN_SOURCES})
+
+ament_target_dependencies(save_img
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
+
+install(TARGETS 
+  save_img
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+
 ############
 
 
