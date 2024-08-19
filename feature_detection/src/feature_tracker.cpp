@@ -27,20 +27,21 @@ namespace simple_livo
     {
         color_frame = _frame;
         cv::cvtColor(_frame, frame, cv::COLOR_BGR2GRAY);
-        
+
         frame_col = _frame.cols;
         frame_row = _frame.rows;
 
         if (frame_last.empty())
         {
-            cv::goodFeaturesToTrack(frame, tracker_point, 100, 0.01, 10); // 检测角点
-            critical_point = tracker_point;
+            RCLCPP_INFO(rclcpp::get_logger("TestNode"), "检测角点");
+            cv::goodFeaturesToTrack(frame, critical_point, 100, 0.01, 10); // 检测角点
         }
         else
         {
+
             if (critical_point_last.size() < 6)
             {
-
+                cv::goodFeaturesToTrack(frame_last, critical_point_last, 100, 0.01, 10); // 检测角点
             }
 
             cv::calcOpticalFlowPyrLK(frame_last, frame, critical_point_last, critical_point, status, err, cv::Size(21, 21), 3);
@@ -54,69 +55,63 @@ namespace simple_livo
 
             if (use_visualization)
             {
-                visualization_img = _frame;
+                _frame.copyTo(visualization_img);
+                SetVisualizationFrame(visualization_img);
 
                 // 在图像上绘制圆点
-                for (const auto &point : critical_point_last)
-                {
-                    cv::circle(visualization_img, point, 7, cv::Scalar(0, 255, 0), -1);
-                }
 
-                for (const auto &point : critical_point)
-                {
-                    cv::circle(visualization_img, point, 3, cv::Scalar(0, 0, 255), -1);
-                }
+                /*
+                // 相机内参
+                cv::Mat K = (cv::Mat_<double>(3, 3) << 718.856, 0, 607.1928,
+                             0, 718.856, 185.2157,
+                             0, 0, 1);
 
-                //std::stringstream ss;
+                // 计算本质矩阵
+                cv::Mat essential_matrix = cv::findEssentialMat(point1, point2, K, cv::RANSAC);
+
+                // 从本质矩阵中恢复相机位姿
+                cv::Mat R, t;
+                cv::recoverPose(essential_matrix, point1, point2, K, R, t);
+
+                // 输出结果
+                std::stringstream ss;
+                ss << "Rotation Matrix: " << std::endl
+                   << R << std::endl;
+                ss << "Translation Vector: " << std::endl
+                   << t << std::endl;
+
+                RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%s", ss.str().c_str());
+                */
+
+                // std::stringstream ss;
 
                 if (!critical_point.empty())
                 {
-                    //RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%d %d %d %d %d", status[0], status[1], status[2], status[3], status[4], status[5]);
+                    RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%f %f", critical_point[0].x, critical_point[0].y);
                     RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%ld %ld", size(critical_point), size(critical_point_last));
                 }
             }
         }
 
         critical_point_last = critical_point;
-        frame_last = frame;
+        frame.copyTo(frame_last);
+    }
+
+    void feature_tracker::SetVisualizationFrame(const cv::Mat &frame)
+    {
+        for (const auto &point : critical_point_last)
+        {
+            cv::circle(frame, point, 5, cv::Scalar(0, 255, 0), -1);
+        }
+
+        for (const auto &point : critical_point)
+        {
+            cv::circle(frame, point, 3, cv::Scalar(0, 0, 255), -1);
+        }
     }
 
     cv::Mat feature_tracker::GetVisualizationFrame()
     {
-        /*
-        // 创建图像的副本，以便不修改原始图像
-        cv::Mat output_img;
-        color_frame.copyTo(output_img);
-
-        // 在图像上绘制圆点
-        for (const auto &point : critical_point_last)
-        {
-            cv::circle(output_img, point, 7, cv::Scalar(0, 255, 0), -1);
-        }
-
-        for (const auto &point : predict_point)
-        {
-            cv::circle(output_img, point, 3, cv::Scalar(0, 0, 255), -1);
-        }
-
-        if (!predict_point.empty())
-        {
-            RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%f %f %f %f", predict_point[0].x, predict_point[0].y, critical_point_last[0].x, critical_point_last[0].y);
-            RCLCPP_INFO(rclcpp::get_logger("TestNode"), "%ld %ld ", size(predict_point), size(critical_point_last));
-        }
-
-        // if (!critical_point_last.empty() && !predict_point.empty())
-        //{
-        //     cv::line(output_img, critical_point_last[0], predict_point[0], cv::Scalar(255, 0, 0), 2);
-        // }
-
-        // for (size_t i = 0; i < status.size(); i++)
-        //{
-        //     cv::line(output_img, critical_point_last[i], predict_point[i], cv::Scalar(255, 0, 0), 2);
-        // }
-        */
-
         return visualization_img;
     }
-
 }

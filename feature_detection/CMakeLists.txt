@@ -39,6 +39,19 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+##
+
+add_executable(test_cv test/TestCv.cpp ${MAIN_SOURCES})
+
+ament_target_dependencies(test_cv
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
+
+install(TARGETS 
+  test_cv
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 # 编译测试工具
 add_executable(save_img tool/SaveImg.cpp ${MAIN_SOURCES})
 

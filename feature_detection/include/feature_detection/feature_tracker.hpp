@@ -21,17 +21,14 @@ namespace simple_livo
 
         cv::Mat GetVisualizationFrame();
 
-    private:
-        void FilterVector(std::vector<cv::Point2f> &v, std::vector<uchar> &status);
-        bool InBorder(const cv::Point2f &pt);
-
+    protected:
         // 关键点检测相关
-        std::vector<cv::Point2f> tracker_point; //跟踪点
+        std::vector<cv::Point2f> tracker_point; // 跟踪点
 
         cv::Mat color_frame;
 
         cv::Mat frame, frame_last;
-        std::vector<cv::Point2f> critical_point, critical_point_last,predict_point;
+        std::vector<cv::Point2f> critical_point, critical_point_last, predict_point;
         std::vector<uchar> status;
         std::vector<float> err;
 
@@ -40,8 +37,13 @@ namespace simple_livo
         int frame_col;   // 图像列数
         int frame_row;   // 图像行数
 
-        //光流可视化相关
+        // 光流可视化相关
         bool use_visualization = true;
         cv::Mat visualization_img;
+
+    private:
+        void FilterVector(std::vector<cv::Point2f> &v, std::vector<uchar> &status);
+        bool InBorder(const cv::Point2f &pt);
+        void SetVisualizationFrame(const cv::Mat &frame);
     };
 }
