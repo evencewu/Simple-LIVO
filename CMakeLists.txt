@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(feature_detection)
+project(simple_livo)
 
 # 找到依赖包
 set(THIS_PACKAGE_INCLUDE_DEPENDS
@@ -7,6 +7,9 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   OpenCV
   sensor_msgs
   cv_bridge
+  PCL
+  pcl_conversions
+  pcl_ros
 )
 
 find_package(ament_cmake REQUIRED)
@@ -17,8 +20,18 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
 endforeach()
 
 # 包含头文件目录
+#message(WARNING "PCL_INCLUDE_DIRS: ${PCL_INCLUDE_DIRS}")
+#message(WARNING "PCL_INCLUDE_DIRS: ${PCL_LIBRARY_DIRS}")
+#message(WARNING "PCL_INCLUDE_DIRS: ${PCL_DEFINITIONS}")
+#message(STATUS "PCL_INCLUDE_DIRS: ${PCL_INCLUDE_DIRS}")
+
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(include)
+
+include_directories(${PCL_INCLUDE_DIRS})
+
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 file(GLOB_RECURSE MAIN_SOURCES "src/*.cpp")
 
@@ -41,14 +54,14 @@ install(TARGETS
 
 ##
 
-add_executable(test_cv test/TestCv.cpp ${MAIN_SOURCES})
+add_executable(test_pointcloud test/TestPointCloud.cpp ${MAIN_SOURCES})
 
-ament_target_dependencies(test_cv
+ament_target_dependencies(test_pointcloud
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
 install(TARGETS 
-  test_cv
+  test_pointcloud
   DESTINATION lib/${PROJECT_NAME}
 )
 

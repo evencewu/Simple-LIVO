@@ -4,7 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
 
-#include "feature_detection/feature_tracker.hpp"
+#include "simple_livo/feature_detection/feature_tracker.hpp"
 
 class TestDetectorNode : public rclcpp::Node
 {
